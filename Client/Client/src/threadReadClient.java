@@ -35,6 +35,8 @@ class threadReadClient extends Thread{
     
     @Override
     public void run(){
+        boolean flag = true;
+        boolean chat = true; 
         while(true){
             try {
                 request = is.readLine();

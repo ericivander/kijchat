@@ -30,9 +30,8 @@ public class ClientForm extends javax.swing.JFrame {
     private BufferedInputStream bis = null;
     private ObjectOutputStream oos = null;
     private ObjectInputStream ois = null;
-    private OutputStream outs = null;
     private OutputStream os = null;
-    private DataInputStream is = null;
+    private DataInputStream dis = null;
     //private DataOutputStream os = null;
     private ArrayList<String> rcpt = new ArrayList<>();
     private threadReadClient trdClient;
@@ -43,11 +42,6 @@ public class ClientForm extends javax.swing.JFrame {
      */
     public ClientForm() {
         initComponents();
-        room.removeAllItems();
-        setEnObject(false);
-        if(isConnected == true){
-            //disconFrom();
-        }
     }
 
     /**
@@ -78,6 +72,12 @@ public class ClientForm extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
+        sendText.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                sendTextActionPerformed(evt);
+            }
+        });
+
         sendBtn.setText("SEND");
         sendBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -105,6 +105,12 @@ public class ClientForm extends javax.swing.JFrame {
         jLabel3.setText("BUMH BUMH CHAT");
 
         jLabel4.setText("USERNAME :");
+
+        uname.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                unameActionPerformed(evt);
+            }
+        });
 
         connBtn.setText("CONNECT");
         connBtn.addActionListener(new java.awt.event.ActionListener() {
@@ -205,7 +211,6 @@ public class ClientForm extends javax.swing.JFrame {
     private void connBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_connBtnActionPerformed
         if(isConnected){
             //disConForm();
-            room.removeAllItems();
         }
         else{
             connTo();
@@ -214,19 +219,23 @@ public class ClientForm extends javax.swing.JFrame {
     }//GEN-LAST:event_connBtnActionPerformed
 
     private void sendBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sendBtnActionPerformed
+        
+    }//GEN-LAST:event_sendBtnActionPerformed
+
+    private void unameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_unameActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_unameActionPerformed
+
+    private void sendTextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sendTextActionPerformed
         try {
-            pesan = sendText.getText();
-            outs.write(pesan.getBytes());
-            outs.flush();
-            //System.out.println(sendText.getText());
-            
-            //send(pesan);
-            this.sendText.setText("");
-            // TODO add your handling code here:
+            String pesan = sendText.getText();
+            bos.write((pesan + '\r' + '\n').getBytes());
+            bos.flush();
         } catch (IOException ex) {
             Logger.getLogger(ClientForm.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }//GEN-LAST:event_sendBtnActionPerformed
+        sendText.setText("");
+    }//GEN-LAST:event_sendTextActionPerformed
 
     /**
      * @param args the command line arguments
@@ -265,33 +274,12 @@ public class ClientForm extends javax.swing.JFrame {
     
     public void connTo() {
         try {
-            server = new Socket(servname.getText(),2400);
+            server = new Socket("localhost", 6060);
             bos = new BufferedOutputStream(server.getOutputStream());
-            oos = new ObjectOutputStream(server.getOutputStream());
+            dis = new DataInputStream(server.getInputStream());
             
-            
-            os = server.getOutputStream();
-            is = new DataInputStream(server.getInputStream());
-            
-            String line = "hey";
-            String responseline = null;
-            char[] strArray;
-            strArray = line.toCharArray();
-            isConnected = true;
-            setEnObject(true);
-            connBtn.setText("DISCONN");
-            while (true) {
-            for( int index = 0; index < strArray.length; index++){
-             os.write(strArray[index]);
-            }
-            os.flush();
-            }
-            
-            //this.trdClient = new threadReadClient(this, server, is, this.msgPool, this.listUser);
-            //this.trdClient.start();
-           
-            
-            
+            this.trdClient = new threadReadClient(this, server, dis, this.msgPool, this.listUser);
+            this.trdClient.start();
         } catch (IOException ex) {
             Logger.getLogger(ClientForm.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -299,7 +287,7 @@ public class ClientForm extends javax.swing.JFrame {
     
     public void disConForm(){
         try {
-            is.close();
+            dis.close();
             oos.close();
             server.close();
             setEnObject(false);
@@ -316,9 +304,8 @@ public class ClientForm extends javax.swing.JFrame {
         msgPool.setEnabled(parameter);
     }
     
-    public void send(String pesan){
-        
-    }
+    
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton connBtn;
     private javax.swing.JLabel jLabel1;
