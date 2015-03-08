@@ -37,8 +37,8 @@ class threadReadClient extends Thread{
     public void run(){
         while(true){
             try {
-                String message = is.readLine();
-                System.out.println("Message: " + message);
+                request = is.readLine();
+                System.out.println("Message: " + request);
             } catch (IOException ex) {
                 Logger.getLogger(threadReadClient.class.getName()).log(Level.SEVERE, null, ex);
             }

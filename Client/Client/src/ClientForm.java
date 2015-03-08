@@ -2,11 +2,13 @@
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -28,17 +30,21 @@ public class ClientForm extends javax.swing.JFrame {
     private BufferedInputStream bis = null;
     private ObjectOutputStream oos = null;
     private ObjectInputStream ois = null;
+    private OutputStream outs = null;
+    private OutputStream os = null;
     private DataInputStream is = null;
+    //private DataOutputStream os = null;
     private ArrayList<String> rcpt = new ArrayList<>();
     private threadReadClient trdClient;
     private boolean  isConnected;
-    
+    private String pesan;
     /**
      * Creates new form ClientForm
      */
     public ClientForm() {
         initComponents();
         room.removeAllItems();
+        setEnObject(false);
         if(isConnected == true){
             //disconFrom();
         }
@@ -53,8 +59,8 @@ public class ClientForm extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jTextField1 = new javax.swing.JTextField();
-        jButton1 = new javax.swing.JButton();
+        sendText = new javax.swing.JTextField();
+        sendBtn = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
         room = new javax.swing.JComboBox();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -72,7 +78,12 @@ public class ClientForm extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        jButton1.setText("SEND");
+        sendBtn.setText("SEND");
+        sendBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                sendBtnActionPerformed(evt);
+            }
+        });
 
         jLabel1.setText("TO : ");
 
@@ -115,9 +126,9 @@ public class ClientForm extends javax.swing.JFrame {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
                                 .addGap(0, 0, Short.MAX_VALUE)
-                                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 166, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(sendText, javax.swing.GroupLayout.PREFERRED_SIZE, 166, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 77, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(sendBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 77, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addComponent(jScrollPane2))
                         .addGap(166, 166, 166))
                     .addGroup(layout.createSequentialGroup()
@@ -178,8 +189,8 @@ public class ClientForm extends javax.swing.JFrame {
                         .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 221, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addComponent(sendBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(sendText, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addComponent(jScrollPane1))
                 .addContainerGap())
         );
@@ -201,6 +212,21 @@ public class ClientForm extends javax.swing.JFrame {
         }
         // TODO add your handling code here:
     }//GEN-LAST:event_connBtnActionPerformed
+
+    private void sendBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sendBtnActionPerformed
+        try {
+            pesan = sendText.getText();
+            outs.write(pesan.getBytes());
+            outs.flush();
+            //System.out.println(sendText.getText());
+            
+            //send(pesan);
+            this.sendText.setText("");
+            // TODO add your handling code here:
+        } catch (IOException ex) {
+            Logger.getLogger(ClientForm.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_sendBtnActionPerformed
 
     /**
      * @param args the command line arguments
@@ -239,23 +265,62 @@ public class ClientForm extends javax.swing.JFrame {
     
     public void connTo() {
         try {
-            server = new Socket(servname.getText(),6060);
+            server = new Socket(servname.getText(),2400);
             bos = new BufferedOutputStream(server.getOutputStream());
             oos = new ObjectOutputStream(server.getOutputStream());
+            
+            
+            os = server.getOutputStream();
             is = new DataInputStream(server.getInputStream());
-            this.trdClient = new threadReadClient(this, server, is, this.msgPool, this.listUser);
-            this.trdClient.start();
+            
+            String line = "hey";
+            String responseline = null;
+            char[] strArray;
+            strArray = line.toCharArray();
+            isConnected = true;
+            setEnObject(true);
+            connBtn.setText("DISCONN");
+            while (true) {
+            for( int index = 0; index < strArray.length; index++){
+             os.write(strArray[index]);
+            }
+            os.flush();
+            }
+            
+            //this.trdClient = new threadReadClient(this, server, is, this.msgPool, this.listUser);
+            //this.trdClient.start();
            
             
-            isConnected = true;
-            connBtn.setText("DISCONN");
+            
         } catch (IOException ex) {
             Logger.getLogger(ClientForm.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+    
+    public void disConForm(){
+        try {
+            is.close();
+            oos.close();
+            server.close();
+            setEnObject(false);
+        } catch (IOException ex) {
+            Logger.getLogger(ClientForm.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void setEnObject(boolean parameter){
+        room.setEnabled(parameter);
+        listUser.setEnabled(parameter);
+        sendBtn.setEnabled(parameter);
+        sendText.setEnabled(parameter);
+        msgPool.setEnabled(parameter);
+    }
+    
+    public void send(String pesan){
+        
+    }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton connBtn;
-    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -264,10 +329,11 @@ public class ClientForm extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JSeparator jSeparator1;
-    private javax.swing.JTextField jTextField1;
     private javax.swing.JList listUser;
     private javax.swing.JTextArea msgPool;
     private javax.swing.JComboBox room;
+    private javax.swing.JButton sendBtn;
+    private javax.swing.JTextField sendText;
     private javax.swing.JTextField servname;
     private javax.swing.JTextField uname;
     // End of variables declaration//GEN-END:variables
