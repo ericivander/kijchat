@@ -157,10 +157,12 @@ void* threadClient(void *arg)
 			}
 			//retval = send(client->sockcli, text, strlen(text), 0);
 		}
+		// Set recipient of client's message
 		else if (strcmp(client->name, "Unknown") != 0 && strncasecmp(buf, "RCPT", 4) == 0)
 		{
 			sscanf(buf, "%*s %s", client->dest);
 		}
+		// Send message to previously set recipient
 		else if (strcmp(client->name, "Unknown") != 0 && strncasecmp(buf, "MSG", 3) == 0)
 		{
 			user *tmp = *(client->first);
@@ -187,11 +189,13 @@ void* threadClient(void *arg)
 				retval = send(tmp->sockcli, text, strlen(text), 0);
 			}
 		}
+		// 101 Username Not Set when invoke a command before logged in
 		else if (strcmp(client->name, "Unknown") == 0) 
 		{
 			sprintf(respbuf, "101#Username Not Set\r\n");
 			retval = send(client->sockcli, respbuf, strlen(respbuf), 0);
 		}
+		// 500 Unknown Command sent by user
 		else
 		{
 			sprintf(respbuf, "500#Unknown Command\r\n");
@@ -227,6 +231,7 @@ int main ()
 	while (1)
 	{
 		tmp = (user *)malloc(sizeof(user));
+		// Set new user data, set at head (first) node
 		tmp->sockcli = accept(sockfd, (struct sockaddr *)&cliaddr, &clisize);
 		strcpy(tmp->name, "Unknown");
 		tmp->countUser = &currentUser;
