@@ -35,8 +35,9 @@ public class ClientForm extends javax.swing.JFrame {
     //private DataOutputStream os = null;
     private ArrayList<String> rcpt = new ArrayList<>();
     private threadReadClient trdClient;
-    private boolean  isConnected = false;
+    public boolean  isConnected = false;
     private String pesan;
+    public ArrayList<String> openedChat = new ArrayList();
     /**
      * Creates new form ClientForm
      */
@@ -50,7 +51,7 @@ public class ClientForm extends javax.swing.JFrame {
             {  
                 dispose();
                 if(isConnected == true){
-                    System.out.println("GOOD BYE");
+                    disConForm();
                 }
                 System.exit( 0 );  
             }  
@@ -220,10 +221,10 @@ public class ClientForm extends javax.swing.JFrame {
     }//GEN-LAST:event_roomActionPerformed
 
     private void connBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_connBtnActionPerformed
-        if(isConnected==true){
+        if(connBtn.getText().equals("DISCONNECT")){
             disConForm();
             clearAll();
-            connBtn.setText("CONNECT");
+            setConBtn(false);
         }
         else{
             connTo();
@@ -238,6 +239,7 @@ public class ClientForm extends javax.swing.JFrame {
         String message = (String) sendText.getText();
         message = "MSG " + message;
         send(message);
+        sendText.setText("");
         //System.out.println(receiver);
     }//GEN-LAST:event_sendBtnActionPerformed
 
@@ -246,9 +248,7 @@ public class ClientForm extends javax.swing.JFrame {
     }//GEN-LAST:event_unameActionPerformed
 
     private void sendTextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sendTextActionPerformed
-        String pesan = "MSG " + sendText.getText();
-        send(pesan);
-        sendText.setText("");
+        sendBtnActionPerformed(evt);
     }//GEN-LAST:event_sendTextActionPerformed
 
     /**
@@ -288,20 +288,18 @@ public class ClientForm extends javax.swing.JFrame {
     
     public void connTo() {
         try {
-            server = new Socket("localhost", 6060);
-            bos = new BufferedOutputStream(server.getOutputStream());
-            dis = new DataInputStream(server.getInputStream());
+            if (isConnected == false){
+                server = new Socket("localhost", 6060);
+                bos = new BufferedOutputStream(server.getOutputStream());
+                dis = new DataInputStream(server.getInputStream());
+                isConnected = true;
+                this.trdClient = new threadReadClient(this, server, dis, this.msgPool, this.listUser, this.room, this.uname);
+                this.trdClient.start();
+            }
             
-            this.trdClient = new threadReadClient(this, server, dis, this.msgPool, this.listUser, this.room);
-            this.trdClient.start();
+            
             String user = "NAME " + uname.getText();
             send(user);
-            String list = "LIST";
-            send(list);
-            
-            setEnObject(true);
-            connBtn.setText("DISCONNECT");
-            isConnected = true;
             
         } catch (IOException ex) {
             Logger.getLogger(ClientForm.class.getName()).log(Level.SEVERE, null, ex);
@@ -310,13 +308,24 @@ public class ClientForm extends javax.swing.JFrame {
     
     public void disConForm(){
         try {
+            send("QUIT");
+            isConnected = false;
             dis.close();
             bos.close();
             server.close();
             setEnObject(false);
+            setConBtn(true);
         } catch (IOException ex) {
             Logger.getLogger(ClientForm.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    public void setConBtn(boolean value){
+        if (!value){
+            connBtn.setText("CONNECT");
+        }
+        else
+            connBtn.setText("DISCONNECT");
     }
     
     public void clearAll(){

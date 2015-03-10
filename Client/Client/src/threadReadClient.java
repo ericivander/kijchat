@@ -1,14 +1,14 @@
 
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
 import javax.swing.JComboBox;
-import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -27,34 +27,49 @@ class threadReadClient extends Thread{
     private ClientForm client;
     private String respon;
     private JComboBox room;
+    private JTextField uname;
     private DefaultListModel listModel;
     
-    public threadReadClient(ClientForm parent, Socket sock, DataInputStream is, JTextArea txtReceived, JTextArea list, JComboBox room){
+    public threadReadClient(ClientForm parent, Socket sock, DataInputStream is, JTextArea txtReceived, JTextArea list, JComboBox room, JTextField uname){
         this.sock = sock;
         this.is = is;
         this.txtReceived = txtReceived;
         this.list = list;
         this.room = room;
+        this.client = parent;
+        this.uname = uname;
     }
     
     @Override
     public void run(){
         boolean flag = true;
-        boolean chat = true; 
-        while(true){
+        while(client.isConnected){
             try {
                 respon = is.readLine();
-                String[] parts = respon.split(" ");
-                if(parts[0].equals("LIST")){
+                String[] parts = respon.split("#");
+                
+                if(parts[0].equals("400")){
+                    this.room.removeAllItems();
+                    this.list.setText("");
                     String[] listUser = parts[1].split(";");
                     for(int i=0; i<listUser.length; i++){
-                        this.room.addItem(listUser[i]);
-                        this.list.append(listUser[i] + "\n");
+                        if (!(this.uname.getText().equals(listUser[i]))){
+                            this.room.addItem(listUser[i]);
+                            this.list.append(listUser[i] + "\n");
+                        }
                     }
-                    
                 }
-                else if(parts[0].equals("MSG")){
-                    
+                else if(parts[0].equals("401")){
+                    String text = parts[1] + " : " + parts[2];
+                    this.txtReceived.append(text + "\n");
+                }
+                else if(parts[0].equals("102")){
+                    JOptionPane.showMessageDialog(null, "Username Sudah Terpakai");
+                }
+                else if(parts[0].equals("100")){
+                    this.client.send("LIST");
+                    this.client.setConBtn(true);
+                    this.client.setEnObject(true);
                 }
                 else{
                     System.out.println(respon);
