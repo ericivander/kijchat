@@ -11,6 +11,21 @@
 #define BACKLOG 10
 #define PRINT(msg) printf ("%s\n", msg)
 
+/*
+	1xx Authentification
+	100 Username Set
+	101 Username Not Set
+	102 Username Already Taken
+	2xx Connection
+	200 Connection Success
+	201 Logging Out
+	4xx Response Message
+	400 LIST Response
+	401 MSG Response
+	5xx Command
+	500 Unknown Command
+*/
+
 typedef struct user
 {
 	int sockcli;
@@ -86,6 +101,7 @@ void* threadClient(void *arg)
 			user *tmp = *(client->first);
 			char text[1000];
 			memset(text, 0, sizeof(text));
+			strcat(text, "400#");
 			while (tmp != NULL)
 			{
 				if(strcmp(tmp->name, "Unknown") != 0)
@@ -107,6 +123,7 @@ void* threadClient(void *arg)
 			user *tmp = *(client->first);
 			char text[1000];
 			memset(text, 0, sizeof(text));
+			strcat(text, "401#");
 			while (tmp->next != NULL)
 			{
 				if (strcasecmp(tmp->name,client->dest) == 0)
