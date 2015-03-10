@@ -35,13 +35,26 @@ public class ClientForm extends javax.swing.JFrame {
     //private DataOutputStream os = null;
     private ArrayList<String> rcpt = new ArrayList<>();
     private threadReadClient trdClient;
-    private boolean  isConnected;
+    private boolean  isConnected = false;
     private String pesan;
     /**
      * Creates new form ClientForm
      */
     public ClientForm() {
         initComponents();
+        setEnObject(false);
+        addWindowListener(new java.awt.event.WindowAdapter()   
+        {  
+            @Override
+            public void windowClosing( java.awt.event.WindowEvent e )   
+            {  
+                dispose();
+                if(isConnected == true){
+                    System.out.println("GOOD BYE");
+                }
+                System.exit( 0 );  
+            }  
+        });
     }
 
     /**
@@ -57,8 +70,6 @@ public class ClientForm extends javax.swing.JFrame {
         sendBtn = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
         room = new javax.swing.JComboBox();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        listUser = new javax.swing.JList();
         jLabel2 = new javax.swing.JLabel();
         jScrollPane2 = new javax.swing.JScrollPane();
         msgPool = new javax.swing.JTextArea();
@@ -69,6 +80,8 @@ public class ClientForm extends javax.swing.JFrame {
         servname = new javax.swing.JTextField();
         connBtn = new javax.swing.JButton();
         jLabel5 = new javax.swing.JLabel();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        listUser = new javax.swing.JTextArea();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -92,8 +105,6 @@ public class ClientForm extends javax.swing.JFrame {
                 roomActionPerformed(evt);
             }
         });
-
-        jScrollPane1.setViewportView(listUser);
 
         jLabel2.setText("USER ONLINE:");
 
@@ -121,6 +132,10 @@ public class ClientForm extends javax.swing.JFrame {
 
         jLabel5.setText("SERVER     :");
 
+        listUser.setColumns(20);
+        listUser.setRows(5);
+        jScrollPane3.setViewportView(listUser);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -129,43 +144,39 @@ public class ClientForm extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
+                        .addComponent(jSeparator1)
+                        .addGap(15, 15, 15))
+                    .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(connBtn, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 162, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel5)
+                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                        .addComponent(servname, javax.swing.GroupLayout.PREFERRED_SIZE, 162, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGroup(layout.createSequentialGroup()
+                                            .addComponent(jLabel4)
+                                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                            .addComponent(uname, javax.swing.GroupLayout.PREFERRED_SIZE, 162, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                                .addGap(0, 0, Short.MAX_VALUE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel1)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(room, javax.swing.GroupLayout.PREFERRED_SIZE, 219, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(layout.createSequentialGroup()
                                 .addGap(0, 0, Short.MAX_VALUE)
                                 .addComponent(sendText, javax.swing.GroupLayout.PREFERRED_SIZE, 166, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addComponent(sendBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 77, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addComponent(jScrollPane2))
-                        .addGap(166, 166, 166))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jSeparator1)
-                        .addGap(15, 15, 15))))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel2)
+                            .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addContainerGap())))
             .addGroup(layout.createSequentialGroup()
                 .addGap(109, 109, 109)
                 .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 205, javax.swing.GroupLayout.PREFERRED_SIZE))
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(connBtn, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 162, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel5)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                .addComponent(servname, javax.swing.GroupLayout.PREFERRED_SIZE, 162, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGroup(layout.createSequentialGroup()
-                                    .addComponent(jLabel4)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                    .addComponent(uname, javax.swing.GroupLayout.PREFERRED_SIZE, 162, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                        .addGap(0, 29, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel1)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(room, javax.swing.GroupLayout.PREFERRED_SIZE, 219, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 146, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel2))
-                .addGap(12, 12, 12))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -197,7 +208,7 @@ public class ClientForm extends javax.swing.JFrame {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(sendBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(sendText, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addComponent(jScrollPane1))
+                    .addComponent(jScrollPane3))
                 .addContainerGap())
         );
 
@@ -209,8 +220,10 @@ public class ClientForm extends javax.swing.JFrame {
     }//GEN-LAST:event_roomActionPerformed
 
     private void connBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_connBtnActionPerformed
-        if(isConnected){
-            //disConForm();
+        if(isConnected==true){
+            disConForm();
+            clearAll();
+            connBtn.setText("CONNECT");
         }
         else{
             connTo();
@@ -219,7 +232,13 @@ public class ClientForm extends javax.swing.JFrame {
     }//GEN-LAST:event_connBtnActionPerformed
 
     private void sendBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sendBtnActionPerformed
-        
+        String receiver = (String) room.getSelectedItem();
+        receiver = "RCPT " + receiver;
+        send(receiver);
+        String message = (String) sendText.getText();
+        message = "MSG " + message;
+        send(message);
+        //System.out.println(receiver);
     }//GEN-LAST:event_sendBtnActionPerformed
 
     private void unameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_unameActionPerformed
@@ -227,13 +246,8 @@ public class ClientForm extends javax.swing.JFrame {
     }//GEN-LAST:event_unameActionPerformed
 
     private void sendTextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sendTextActionPerformed
-        try {
-            String pesan = sendText.getText();
-            bos.write((pesan + '\r' + '\n').getBytes());
-            bos.flush();
-        } catch (IOException ex) {
-            Logger.getLogger(ClientForm.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        String pesan = "MSG " + sendText.getText();
+        send(pesan);
         sendText.setText("");
     }//GEN-LAST:event_sendTextActionPerformed
 
@@ -278,8 +292,17 @@ public class ClientForm extends javax.swing.JFrame {
             bos = new BufferedOutputStream(server.getOutputStream());
             dis = new DataInputStream(server.getInputStream());
             
-            this.trdClient = new threadReadClient(this, server, dis, this.msgPool, this.listUser);
+            this.trdClient = new threadReadClient(this, server, dis, this.msgPool, this.listUser, this.room);
             this.trdClient.start();
+            String user = "NAME " + uname.getText();
+            send(user);
+            String list = "LIST";
+            send(list);
+            
+            setEnObject(true);
+            connBtn.setText("DISCONNECT");
+            isConnected = true;
+            
         } catch (IOException ex) {
             Logger.getLogger(ClientForm.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -288,7 +311,7 @@ public class ClientForm extends javax.swing.JFrame {
     public void disConForm(){
         try {
             dis.close();
-            oos.close();
+            bos.close();
             server.close();
             setEnObject(false);
         } catch (IOException ex) {
@@ -296,6 +319,13 @@ public class ClientForm extends javax.swing.JFrame {
         }
     }
     
+    public void clearAll(){
+        msgPool.setText("");
+        listUser.setText("");
+        room.removeAllItems();
+        uname.setText("");
+        servname.setText("");
+    }
     public void setEnObject(boolean parameter){
         room.setEnabled(parameter);
         listUser.setEnabled(parameter);
@@ -304,7 +334,14 @@ public class ClientForm extends javax.swing.JFrame {
         msgPool.setEnabled(parameter);
     }
     
-    
+    public void send(String request){
+        try {
+            bos.write((request + '\r' + '\n').getBytes());
+            bos.flush();
+        } catch (IOException ex) {
+            Logger.getLogger(ClientForm.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton connBtn;
@@ -313,10 +350,10 @@ public class ClientForm extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
-    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JSeparator jSeparator1;
-    private javax.swing.JList listUser;
+    private javax.swing.JTextArea listUser;
     private javax.swing.JTextArea msgPool;
     private javax.swing.JComboBox room;
     private javax.swing.JButton sendBtn;
