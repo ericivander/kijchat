@@ -112,7 +112,16 @@ void* threadClient(void *arg)
 				tmp = tmp->next;
 			}
 			strcat(text, "\r\n");
-			retval = send(client->sockcli, text, strlen(text), 0);
+			tmp = *(client->first);
+			while (tmp != NULL)
+			{
+				if(strcmp(tmp->name, "Unknown") != 0)
+				{
+					send(tmp->sockcli, text, strlen(text), 0);
+				}
+				tmp = tmp->next;
+			}
+			//retval = send(client->sockcli, text, strlen(text), 0);
 		}
 		else if (strcmp(client->name, "Unknown") != 0 && strncasecmp(buf, "RCPT", 4) == 0)
 		{
@@ -124,18 +133,21 @@ void* threadClient(void *arg)
 			char text[1000];
 			memset(text, 0, sizeof(text));
 			strcat(text, "401#");
-			while (tmp->next != NULL)
+			strcat(text, client->name);
+			strcat(text, "#");
+			while (tmp != NULL)
 			{
-				if (strcasecmp(tmp->name,client->dest) == 0)
+				if (strcasecmp(tmp->name, client->dest) == 0)
 					break;
 				tmp = tmp->next;	
 			}
 			int i;
 			if (strlen(buf) > 3)
 			{
-				for (i = 0; i < strlen(buf) - 4; i++)
+				int l = strlen(text);
+				for (i = l; i < l + strlen(buf) - 4; i++)
 				{
-					text[i] = buf[i + 4];
+					text[i] = buf[i - l + 4];
 				}
 				strcat(text, "\r\n");
 				retval = send(tmp->sockcli, text, strlen(text), 0);
