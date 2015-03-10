@@ -21,13 +21,13 @@ typedef struct user{
 	struct user *prev, *next, **first;
 }user;
 
-user *first,*last,*tmp;
+user *first,*tmp;
 
 int readresponse(int, char *);
 pthread_t pt[100];
 int currentUser = 0;
 user clientList[100];
-char buf[200], respbuf[200];
+char buf[1000], respbuf[1000];
 
 void* threadClient(void *arg)
 {
@@ -66,19 +66,35 @@ void* threadClient(void *arg)
 			while(tmp->next != NULL){
 				strcat(text,tmp->name);
 				strcat(text,";");
-				//PRINT(tmp->name);
 				tmp = tmp->next;	
 			}
 			strcat(text,tmp->name);
 			strcat(text,";\r\n");
 			retval = send(client->sockcli, text, strlen(text),0);
-			//PRINT(tmp->name);
-
 		}
-		else{
-			sprintf(respbuf,"%d %s\r\n",*client->countUser,buf);
-			retval = send(client->sockcli, respbuf, strlen(respbuf),0);
+		else if (strncasecmp(buf,"RCPT",4) == 0){
+			sscanf(buf,"%*s %s",client->dest);
 		}
+		else if (strncasecmp(buf,"MSG",3) == 0){
+			user *tmp = client;
+			while(tmp->prev != NULL)
+				tmp = tmp->prev;
+			char text[1000];
+			memset(text,0,sizeof(text));
+			while(tmp->next != NULL){
+				if (strcasecmp(tmp->name,client->dest) == 0)
+					break;
+				tmp = tmp->next;	
+			}
+			int i;
+			if (strlen(buf) > 3){
+				for (i=0;i<strlen(buf)-4;i++){
+					text[i] = buf[i+4];
+				}
+				strcat(text,"\r\n");
+				retval = send(tmp->sockcli, text, strlen(text),0);
+			}
+		}	
 	}
 	(*client->countUser)--;
 	close(client->sockcli);
