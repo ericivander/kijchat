@@ -13,6 +13,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -109,6 +110,7 @@ public class ClientForm extends javax.swing.JFrame {
 
         jLabel2.setText("USER ONLINE:");
 
+        msgPool.setEditable(false);
         msgPool.setColumns(20);
         msgPool.setRows(5);
         jScrollPane2.setViewportView(msgPool);
@@ -124,6 +126,12 @@ public class ClientForm extends javax.swing.JFrame {
             }
         });
 
+        servname.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                servnameActionPerformed(evt);
+            }
+        });
+
         connBtn.setText("CONNECT");
         connBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -133,6 +141,7 @@ public class ClientForm extends javax.swing.JFrame {
 
         jLabel5.setText("SERVER     :");
 
+        listUser.setEditable(false);
         listUser.setColumns(20);
         listUser.setRows(5);
         jScrollPane3.setViewportView(listUser);
@@ -233,23 +242,32 @@ public class ClientForm extends javax.swing.JFrame {
     }//GEN-LAST:event_connBtnActionPerformed
 
     private void sendBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sendBtnActionPerformed
-        String receiver = (String) room.getSelectedItem();
-        receiver = "RCPT " + receiver;
-        send(receiver);
-        String message = (String) sendText.getText();
-        message = "MSG " + message;
-        send(message);
-        sendText.setText("");
+        if (room.getSelectedIndex() != -1){
+            String receiver = (String) room.getSelectedItem();
+            receiver = "RCPT " + receiver;
+            send(receiver);
+            String message = (String) sendText.getText();
+            message = "MSG " + message;
+            send(message);
+            msgPool.append("To " + room.getSelectedItem().toString() + " : " + sendText.getText()+ "\n");
+            sendText.setText("");
+        }
+        else 
+            JOptionPane.showMessageDialog(null, "Tidak Ada Penerima Pesan");
         //System.out.println(receiver);
     }//GEN-LAST:event_sendBtnActionPerformed
 
     private void unameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_unameActionPerformed
-        // TODO add your handling code here:
+        connBtnActionPerformed(evt);
     }//GEN-LAST:event_unameActionPerformed
 
     private void sendTextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sendTextActionPerformed
         sendBtnActionPerformed(evt);
     }//GEN-LAST:event_sendTextActionPerformed
+
+    private void servnameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_servnameActionPerformed
+        connBtnActionPerformed(evt);
+    }//GEN-LAST:event_servnameActionPerformed
 
     /**
      * @param args the command line arguments
@@ -288,21 +306,26 @@ public class ClientForm extends javax.swing.JFrame {
     
     public void connTo() {
         try {
-            if (isConnected == false){
-                server = new Socket("localhost", 6060);
-                bos = new BufferedOutputStream(server.getOutputStream());
-                dis = new DataInputStream(server.getInputStream());
-                isConnected = true;
-                this.trdClient = new threadReadClient(this, server, dis, this.msgPool, this.listUser, this.room, this.uname);
-                this.trdClient.start();
+            if (uname.getText().equals("")){
+                JOptionPane.showMessageDialog(null, "Username Kosong");
             }
-            
-            
-            String user = "NAME " + uname.getText();
-            send(user);
-            
+            else{
+                if (isConnected == false){
+                    server = new Socket(servname.getText()==""?"localhost":servname.getText(), 6060);
+                    bos = new BufferedOutputStream(server.getOutputStream());
+                    dis = new DataInputStream(server.getInputStream());
+                    if (server!= null)
+                        isConnected = true;
+                    this.trdClient = new threadReadClient(this, server, dis, this.msgPool, this.listUser, this.room, this.uname);
+                    this.trdClient.start();
+                }
+
+
+                String user = "NAME " + uname.getText();
+                send(user);
+            }
         } catch (IOException ex) {
-            Logger.getLogger(ClientForm.class.getName()).log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(null, "Server Sedang Offline");
         }
     }
     
@@ -314,6 +337,7 @@ public class ClientForm extends javax.swing.JFrame {
             bos.close();
             server.close();
             setEnObject(false);
+            setEdit(true);
             setConBtn(true);
         } catch (IOException ex) {
             Logger.getLogger(ClientForm.class.getName()).log(Level.SEVERE, null, ex);
@@ -326,6 +350,11 @@ public class ClientForm extends javax.swing.JFrame {
         }
         else
             connBtn.setText("DISCONNECT");
+    }
+    
+    public void setEdit(boolean value){
+        uname.setEditable(value);
+        servname.setEditable(value);
     }
     
     public void clearAll(){

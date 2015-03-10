@@ -160,6 +160,7 @@
       <SubComponents>
         <Component class="javax.swing.JTextArea" name="msgPool">
           <Properties>
+            <Property name="editable" type="boolean" value="false"/>
             <Property name="columns" type="int" value="20"/>
             <Property name="rows" type="int" value="5"/>
           </Properties>
@@ -187,6 +188,9 @@
       </Events>
     </Component>
     <Component class="javax.swing.JTextField" name="servname">
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="servnameActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JButton" name="connBtn">
       <Properties>
@@ -210,6 +214,7 @@
       <SubComponents>
         <Component class="javax.swing.JTextArea" name="listUser">
           <Properties>
+            <Property name="editable" type="boolean" value="false"/>
             <Property name="columns" type="int" value="20"/>
             <Property name="rows" type="int" value="5"/>
           </Properties>

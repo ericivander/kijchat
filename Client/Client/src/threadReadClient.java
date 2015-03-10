@@ -70,6 +70,7 @@ class threadReadClient extends Thread{
                     this.client.send("LIST");
                     this.client.setConBtn(true);
                     this.client.setEnObject(true);
+                    this.client.setEdit(false);
                 }
                 else{
                     System.out.println(respon);
