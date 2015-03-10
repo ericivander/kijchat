@@ -55,7 +55,7 @@ void* threadClient(void *arg)
 		}
 		else if (strncasecmp(buf, "NAME",4) == 0){
 			sscanf(buf,"%*s %s",client->name);
-			PRINT(client->name);
+			//PRINT(client->name);
 		}
 		else if (strcasecmp(buf, "LIST") == 0){
 			user *tmp = client;
