@@ -26,6 +26,7 @@
 	500 Unknown Command
 */
 
+// Node for each client
 typedef struct user
 {
 	int sockcli;
@@ -35,8 +36,10 @@ typedef struct user
 	struct user *prev, *next, **first;
 } user;
 
+// Pointer to head and temporary var
 user *first, *tmp;
 
+// Function Declaration : to readresponse from client
 int readresponse(int, char *);
 
 pthread_t pt[100];
@@ -44,11 +47,13 @@ int currentUser = 0;
 user clientList[100];
 char buf[1000], respbuf[1000];
 
+// Client's thread
 void* threadClient(void *arg)
 {
 	int retval = 0;
 	user *client = (user *) arg;
 	PRINT("Accept !");
+	// After each successful connection
 	sprintf(respbuf, "200#Connect Success\r\n");
 	retval = send(client->sockcli, respbuf, strlen(respbuf), 0);
 	while (retval != -1)
@@ -57,6 +62,7 @@ void* threadClient(void *arg)
 		PRINT(buf);
 		if (retval == -1)
 			break;
+		// Client QUIT from the chat
 		else if (strcasecmp(buf, "QUIT") == 0)
 		{
 			sprintf(respbuf, "201#Logging Out\r\n");
@@ -69,13 +75,40 @@ void* threadClient(void *arg)
 				client->next->prev = client->prev;
 			if (client->prev != NULL)
 				client->prev->next = client->next;
+			
+			// Broadcast current LIST to all online user
+			user *tmp = *(client->first);
+			char text[1000];
+			memset(text, 0, sizeof(text));
+			strcat(text, "400#");
+			while (tmp != NULL)
+			{
+				if(strcmp(tmp->name, "Unknown") != 0)
+				{
+					strcat(text, tmp->name);
+					strcat(text, ";");
+				}
+				tmp = tmp->next;
+			}
+			strcat(text, "\r\n");
+			tmp = *(client->first);
+			while (tmp != NULL)
+			{
+				if(strcmp(tmp->name, "Unknown") != 0)
+				{
+					send(tmp->sockcli, text, strlen(text), 0);
+				}
+				tmp = tmp->next;
+			}
 		}
+		// Client setting username for chatting
+		// Duplicate username will be forced to close
 		else if (strcmp(client->name, "Unknown") == 0 && strncasecmp(buf, "NAME", 4) == 0)
 		{
 			int taken = 0;
 			char name[200];
 			sscanf(buf, "%*s %s", name);
-			PRINT(name);
+			//PRINT(name);
 			user *tmp = *(client->first);
 			while (tmp != NULL)
 			{
@@ -96,6 +129,7 @@ void* threadClient(void *arg)
 				retval = send(client->sockcli, respbuf, strlen(respbuf), 0);
 			}
 		}
+		// Broadcast current LIST to all online user
 		else if (strcmp(client->name, "Unknown") != 0 && strcasecmp(buf, "LIST") == 0)
 		{
 			user *tmp = *(client->first);
