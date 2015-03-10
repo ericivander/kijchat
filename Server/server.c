@@ -15,12 +15,10 @@
 
 typedef struct user{
 	int sockcli;
-	struct sockaddr_in cliaddr;
-	int addrlen;
 	char name[200];
 	char dest[200];
 	int *countUser;
-	struct user *linkLeft, *linkRight, *first;
+	struct user *prev, *next, **first;
 }user;
 
 user *first,*last,*tmp;
@@ -47,14 +45,35 @@ void* threadClient(void *arg)
 			sprintf(respbuf,"221 Terminating program...\r\n");
 			retval = send(client->sockcli, respbuf, strlen(respbuf),0);
 			retval = -1;
+			 
+			if (*(client->first) == client)
+			    *(client->first) = client->next;
+			if (client->next != NULL)
+				client->next->prev = client->prev;
+			if (client->prev != NULL)
+				client->prev->next = client->next;
 		}
 		else if (strncasecmp(buf, "NAME",4) == 0){
 			sscanf(buf,"%*s %s",client->name);
 			PRINT(client->name);
 		}
 		else if (strcasecmp(buf, "LIST") == 0){
-			//user *temp = client->(*first);
-			//PRINT((client->first)->name);
+			user *tmp = client;
+			while(tmp->prev != NULL)
+				tmp = tmp->prev;
+			char text[1000];
+			memset(text,0,sizeof(text));
+			while(tmp->next != NULL){
+				strcat(text,tmp->name);
+				strcat(text,";");
+				//PRINT(tmp->name);
+				tmp = tmp->next;	
+			}
+			strcat(text,tmp->name);
+			strcat(text,";\r\n");
+			retval = send(client->sockcli, text, strlen(text),0);
+			//PRINT(tmp->name);
+
 		}
 		else{
 			sprintf(respbuf,"%d %s\r\n",*client->countUser,buf);
@@ -63,6 +82,8 @@ void* threadClient(void *arg)
 	}
 	(*client->countUser)--;
 	close(client->sockcli);
+	client = NULL;
+	free(client);
 }
 
 int main (){
@@ -86,27 +107,16 @@ int main (){
 
 	while (1){
 		tmp = (user*)malloc(sizeof(user));
-		tmp->cliaddr = cliaddr;
-		tmp->addrlen = clisize;
 		tmp->sockcli = accept(sockfd,(struct sockaddr*)&cliaddr, &clisize);
 		tmp->countUser = &currentUser;
-		tmp->first = first;
-
-		if (first == NULL){
-			tmp->linkLeft = NULL;
-			tmp->linkRight= NULL;
-			first = tmp;
-			last = tmp;
-		}
-		else{
-			last->linkRight = tmp;
-			tmp->linkLeft = last;
-			last = tmp;
-		}
-		pthread_create(&pt[currentUser],NULL,threadClient,last);
+		tmp->first = &first;
+		tmp->prev = NULL;
+		tmp->next = first;
+		if (first != NULL)
+			first->prev = tmp;
+		first = tmp;
+		pthread_create(&pt[currentUser],NULL,threadClient,tmp);
 		currentUser++;
-		tmp = NULL;
-		free(tmp);
 	}
 
 }
