@@ -117,7 +117,6 @@ void* threadClient(void *arg)
 					sprintf(respbuf, "102#Username Already Taken\r\n");
 					taken = 1;
 					send(client->sockcli, respbuf, strlen(respbuf), 0);
-					retval = -1;
 					break;
 				}
 				tmp = tmp->next;
