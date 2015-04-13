@@ -11,7 +11,6 @@ long int cd(long int);
 void encrypt();
 void decrypt();
 void main() {
-	clrscr();
 	printf("\nENTER FIRST PRIME NUMBER\n");
 	scanf("%d",&p);
 	flag=prime(p);
@@ -31,7 +30,7 @@ void main() {
 	printf("\nENTER MESSAGE\n");
 	fflush(stdin);
 	scanf("%s",msg);
-	for (i=0;msg[i]!=NULL;i++)
+	for (i=0;msg[i]!='\0';i++)
 	m[i]=msg[i];
 	n=p*q;
 	t=(p-1)*(q-1);
