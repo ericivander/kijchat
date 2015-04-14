@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <iostream>
 #include <unistd.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
@@ -34,7 +35,7 @@ using namespace std;
 typedef struct user
 {
 	int sockcli;
-	string name;
+	char name[200];
 	struct user *prev, *next, **first;
 } user;
 
@@ -89,7 +90,7 @@ void* threadClient(void *arg)
 			memset(name, 0, sizeof(name));
 			sscanf(buf, "%*s %s", name);
 			//PRINT(name);
-			client->name = name;
+			strcpy(client->name, name);
 			sprintf(respbuf, "100#Username Set\r\n");
 			retval = send(client->sockcli, respbuf, strlen(respbuf), 0);
 		}
@@ -145,19 +146,28 @@ int main ()
 	PRINT("Port Binding berhasil !");
 
 	retval = listen(sockfd, BACKLOG);
-
+	PRINT("1");
 	while (1)
 	{
+		PRINT("a");
 		tmp = (user *)malloc(sizeof(user));
 		// Set new user data, set at head (first) node
 		tmp->sockcli = accept(sockfd, (struct sockaddr *)&cliaddr, &clisize);
-		tmp->name = "";
+		PRINT("b");
+		strcpy(tmp->name, "");
+		PRINT("c");
 		tmp->first = &first;
+		PRINT("d");
 		tmp->prev = NULL;
+		PRINT("e");
 		tmp->next = first;
+		PRINT("f");
 		if (first != NULL)
 			first->prev = tmp;
 		first = tmp;
+		PRINT("g");
+		PRINT(tmp->name);
+		PRINT("h");
 		pthread_create(&pt[currentUser], NULL, threadClient, tmp);
 		currentUser++;
 	}
