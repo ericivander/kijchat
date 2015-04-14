@@ -13,8 +13,9 @@ public class rsa {
     private int bitlength = 1024; 
     private int blocksize = 256; //blocksize in byte 
      
-    private Random r; 
-     public rsa() { 
+    private Random r;
+    
+    public rsa() { 
         r = new Random(); 
         p = BigInteger.probablePrime(bitlength, r); 
         q = BigInteger.probablePrime(bitlength, r); 
