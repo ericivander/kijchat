@@ -165,7 +165,7 @@ void* threadClient(void *arg)
 		else if (strcmp(client->name, "Unknown") != 0 && strncasecmp(buf, "MSG", 3) == 0)
 		{
 			user *tmp = *(client->first);
-			char text[1000];
+			char text[2048];
 			memset(text, 0, sizeof(text));
 			strcat(text, "401#");
 			strcat(text, client->name);

@@ -289,9 +289,13 @@ public class ClientForm extends javax.swing.JFrame {
                     receiver = (String) room.getSelectedItem();
                     receiver = "GET " + receiver;
                     send_to_key(receiver);
-                    while (this.pubEKey.equals(0)){
+                    
+                    BigInteger comp;
+                    comp = new BigInteger("0");
+                    
+                    while (this.pubEKey.equals(comp)){
                     }
-                    while(this.pubNKey.equals(0)){
+                    while(this.pubNKey.equals(comp)){
                     }
                     String message = (String) sendText.getText();
                     byte[] plain = Encrypt.DES.paddingMsg(message.getBytes());
@@ -306,8 +310,8 @@ public class ClientForm extends javax.swing.JFrame {
                     message = Base64.encode(chiper);
                     byte[] EncryptedDESKey;
                     EncryptedDESKey = myKey.encrypt(DESKey, this.pubEKey, this.pubNKey);
-                    System.out.println(DES.bytesToHex(DESKey));
-                    System.out.println(DES.bytesToHex(EncryptedDESKey));
+                    System.out.println("DES Key : " + DES.bytesToHex(DESKey));
+                    System.out.println("Encrypted DES Key : " + DES.bytesToHex(EncryptedDESKey));
                     message = "MSG " + message + " " + Base64.encode(EncryptedDESKey);
                     send(message);
                     r.nextBytes(DESKey);

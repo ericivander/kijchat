@@ -66,9 +66,10 @@ class threadReadClient extends Thread {
                 else if (parts[0].equals("401")) {
                     try {
                         String[] data = parts[2].split(" ");
+                        System.out.println("Decrypting : " + DES.bytesToHex(Base64.decode(data[1])));
                         byte[] theKey = this.client.myKey.decrypt(Base64.decode(data[1]));
-                        System.out.println(data[1]);
-                        /*byte[] IV = "UDPEERNI".getBytes();
+                        System.out.println("Decrypted DES Key : " + DES.bytesToHex(theKey));
+                        byte[] IV = "UDPEERNI".getBytes();
                         byte[] theMsg = Base64.decode(data[0]);
                         byte[][] subKeys = DES.getSubkeys(theKey);
                         byte[] chiper = DES.paddingMsg(theMsg);
@@ -77,7 +78,7 @@ class threadReadClient extends Thread {
                         //System.out.println("lalala");
                         String text = parts[1] + " : " + new String(plain);
                         this.txtReceived.append(text + "\n");
-                        //System.out.println(new String(plain));*/
+                        //System.out.println(new String(plain));
                     } catch (Exception e) {
                         e.printStackTrace();
                         return;
