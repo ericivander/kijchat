@@ -1,3 +1,4 @@
+import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
@@ -272,12 +273,19 @@ public class ClientForm extends javax.swing.JFrame {
                     String message = (String) sendText.getText();
                     byte[] plain = DES.DES.paddingMsg(message.getBytes());
                     byte[][] subKeys = DES.DES.getSubkeys(theKey);
+                    //System.out.println("----------------"+plain.length);
                     byte[] chiper = DES.DES.encryptBlock(plain, IV, subKeys);
                     
-                    message = new String(chiper);
+                    System.out.println(DES.DES.bytesToHex(chiper));
+                    //String baru = new String (chiper);
+                    //System.out.println("---------"+baru);
+                    //message = new String(chiper);
+                    message = Base64.encode(chiper);
+                           
                     message = "MSG " + message;
 
                     send(message);
+                    //System.out.println(message);
                     msgPool.append("To " + room.getSelectedItem().toString() + " : " + sendText.getText() + "\n");
                     sendText.setText("");
                 }catch (Exception e) {

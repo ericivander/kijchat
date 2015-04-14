@@ -1,4 +1,5 @@
 
+import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
@@ -63,13 +64,15 @@ class threadReadClient extends Thread{
                     try {
                         byte[] theKey = "hehehehe".getBytes();
                         byte[] IV = "hohohoho".getBytes();
-                        byte[] theMsg = parts[2].getBytes();
-
+                        byte[] theMsg = Base64.decode(parts[2]);
                         byte[][] subKeys = DES.DES.getSubkeys(theKey);
-                        byte[] plain = DES.DES.encryptBlock(theMsg, IV, subKeys);
-                        System.out.println(new String(plain));
-                        //String text = parts[1] + " : " + parts[2];
-                        //this.txtReceived.append(text + "\n");
+                        byte[] chiper = DES.DES.paddingMsg(theMsg);
+                        byte[] plain = DES.DES.encryptBlock(chiper, IV, subKeys);
+                        //System.out.println(DES.DES.bytesToHex(plain));
+                        //System.out.println("lalala");
+                        String text = parts[1] + " : " + new String(plain);
+                        this.txtReceived.append(text + "\n");
+                        //System.out.println(new String(plain));
                     }catch (Exception e) {
                         e.printStackTrace();
                         return;

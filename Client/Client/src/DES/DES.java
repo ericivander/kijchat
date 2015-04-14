@@ -12,6 +12,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class DES {
+
     static final int[] IP = {
         58, 50, 42, 34, 26, 18, 10, 2,
         60, 52, 44, 36, 28, 20, 12, 4,
@@ -327,33 +328,32 @@ public class DES {
             return str.toUpperCase();
         }
     }
-    
-    public static byte[] paddingMsg(byte[] data){
-        byte[] baru = new byte[(int)Math.ceil((double)data.length / 8.0) * 8];
+
+    public static byte[] paddingMsg(byte[] data) {
+        byte[] baru = new byte[(int) Math.ceil((double) data.length / 8.0) * 8];
         Arrays.fill(baru, (byte) 0);
         System.arraycopy(data, 0, baru, 0, data.length);
         return baru;
     }
-    
-    public static byte[] encryptBlock(byte[] data, byte[] IV, byte[][] subKeys) throw Exception{
-        
-            byte plain[] = new byte[8];
-        
-            byte[] theCph = null;
-            byte[] res = new byte[data.length];
-            for (int i = 0; i < data.length; i += 8){
-                byte[] ctext = null;
-                System.arraycopy(data, i, plain, 0, 8);
-                if (i == 0)
-                    theCph = cipher(IV, subKeys, "encrypt");
-                else
-                    theCph = cipher(theCph, subKeys, "encrypt");
-                ctext = doXORBytes(plain, theCph);
-                //theCph = cipher(plain, subKeys, "encrypt");
-                //System.out.println(bytesToHex(theCph));
-                System.out.println(bytesToHex(ctext));
-                System.arraycopy(ctext,0,res,i,8);
+
+    public static byte[] encryptBlock(byte[] data, byte[] IV, byte[][] subKeys) throws Exception {
+        byte plain[] = new byte[8];
+        byte[] theCph = null;
+        byte[] res = new byte[data.length];
+        for (int i = 0; i < data.length; i += 8) {
+            byte[] ctext = null;
+            System.arraycopy(data, i, plain, 0, 8);
+            if (i == 0) {
+                theCph = cipher(IV, subKeys, "encrypt");
+            } else {
+                theCph = cipher(theCph, subKeys, "encrypt");
             }
-            return res;
+            ctext = doXORBytes(plain, theCph);
+            //theCph = cipher(plain, subKeys, "encrypt");
+            //System.out.println(bytesToHex(theCph));
+            //System.out.println(bytesToHex(ctext));
+            System.arraycopy(ctext, 0, res, i, 8);
+        }
+        return res;
     }
 }
