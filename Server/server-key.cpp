@@ -41,7 +41,8 @@ typedef struct user
 } user;
 
 // client and public key dictionary
-map<string, string> dict;
+map<string, string> dictE;
+map<string, string> dictN;
 
 // Pointer to head and temporary var
 user *first, *tmp;
@@ -83,7 +84,8 @@ void* threadClient(void *arg)
 			if (client->prev != NULL)
 				client->prev->next = client->next;
 			
-			dict[client->name] = "";
+			dictE[client->name] = "";
+			dictN[client->name] = "";
 		}
 		// Save client username
 		else if (strncasecmp(buf, "NAME", 4) == 0)
@@ -99,10 +101,13 @@ void* threadClient(void *arg)
 		// Set public key of client's
 		else if (strncasecmp(buf, "SET", 3) == 0)
 		{
-			char key[1024];
-			memset(key, 0, sizeof(key));
-			sscanf(buf, "%*s %s", key);
-			dict[client->name] = key;
+			char e[1024];
+			char N[1024];
+			memset(e, 0, sizeof(e));
+			memset(N, 0, sizeof(N));
+			sscanf(buf, "%*s %s %s", e, N);
+			dictE[client->name] = e;
+			dictN[client->name] = N;
 			sprintf(respbuf, "410#Public Key Set\r\n");
 			retval = send(client->sockcli, respbuf, strlen(respbuf), 0);
 		}
@@ -112,7 +117,7 @@ void* threadClient(void *arg)
 			char target[1024];
 			memset(target, 0, sizeof(target));
 			sscanf(buf, "%*s %s", target);
-			if(dict[target].length() == 0)
+			if(dictE[target].length() == 0 || dictN[target].length() == 0)
 			{
 				sprintf(respbuf, "414#Client Not Found\r\n");
 				retval = send(client->sockcli, respbuf, strlen(respbuf), 0);
@@ -123,7 +128,9 @@ void* threadClient(void *arg)
 				strcat(text, "411#");
 				strcat(text, target);
 				strcat(text, "#");
-				strcat(text, dict[target].c_str());
+				strcat(text, dictE[target].c_str());
+				strcat(text, "#");
+				strcat(text, dictN[target].c_str());
 				strcat(text, "\r\n");
 				retval = send(client->sockcli, text, strlen(text), 0);
 			}
