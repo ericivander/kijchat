@@ -125,6 +125,7 @@ void* threadClient(void *arg)
 			else
 			{
 				char text[2048];
+				memset(text, 0, sizeof(text));
 				strcat(text, "411#");
 				strcat(text, target);
 				strcat(text, "#");
