@@ -60,8 +60,20 @@ class threadReadClient extends Thread{
                     }
                 }
                 else if(parts[0].equals("401")){
-                    String text = parts[1] + " : " + parts[2];
-                    this.txtReceived.append(text + "\n");
+                    try {
+                        byte[] theKey = "hehehehe".getBytes();
+                        byte[] IV = "hohohoho".getBytes();
+                        byte[] theMsg = parts[2].getBytes();
+
+                        byte[][] subKeys = DES.DES.getSubkeys(theKey);
+                        byte[] plain = DES.DES.encryptBlock(theMsg, IV, subKeys);
+                        System.out.println(new String(plain));
+                        //String text = parts[1] + " : " + parts[2];
+                        //this.txtReceived.append(text + "\n");
+                    }catch (Exception e) {
+                        e.printStackTrace();
+                        return;
+                    }
                 }
                 else if(parts[0].equals("102")){
                     JOptionPane.showMessageDialog(null, "Username Sudah Terpakai");

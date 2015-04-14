@@ -1,4 +1,3 @@
-
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
@@ -25,7 +24,7 @@ import javax.swing.JOptionPane;
  * @author Peni Sriwahyu
  */
 public class ClientForm extends javax.swing.JFrame {
-    
+
     private Socket server = null;
     private BufferedOutputStream bos = null;
     private BufferedInputStream bis = null;
@@ -36,26 +35,25 @@ public class ClientForm extends javax.swing.JFrame {
     //private DataOutputStream os = null;
     private ArrayList<String> rcpt = new ArrayList<>();
     private threadReadClient trdClient;
-    public boolean  isConnected = false;
+    public boolean isConnected = false;
     private String pesan;
     public ArrayList<String> openedChat = new ArrayList();
+
     /**
      * Creates new form ClientForm
      */
     public ClientForm() {
         initComponents();
         setEnObject(false);
-        addWindowListener(new java.awt.event.WindowAdapter()   
-        {  
+        addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
-            public void windowClosing( java.awt.event.WindowEvent e )   
-            {  
+            public void windowClosing(java.awt.event.WindowEvent e) {
                 dispose();
-                if(isConnected == true){
+                if (isConnected == true) {
                     disConForm();
                 }
-                System.exit( 0 );  
-            }  
+                System.exit(0);
+            }
         });
     }
 
@@ -251,32 +249,45 @@ public class ClientForm extends javax.swing.JFrame {
     }//GEN-LAST:event_roomActionPerformed
 
     private void connBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_connBtnActionPerformed
-        if(connBtn.getText().equals("DISCONNECT")){
+        if (connBtn.getText().equals("DISCONNECT")) {
             disConForm();
             clearAll();
             setConBtn(false);
-        }
-        else{
+        } else {
             connTo();
         }
         // TODO add your handling code here:
     }//GEN-LAST:event_connBtnActionPerformed
 
     private void sendBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sendBtnActionPerformed
-        if (room.getSelectedIndex() != -1){
-            if (!(sendText.getText().equals(""))){
-               String receiver = (String) room.getSelectedItem();
-               receiver = "RCPT " + receiver;
-               send(receiver);
-               String message = (String) sendText.getText();
-               message = "MSG " + message;
-               send(message);
-               msgPool.append("To " + room.getSelectedItem().toString() + " : " + sendText.getText()+ "\n");
-               sendText.setText("");
+        if (room.getSelectedIndex() != -1) {
+            if (!(sendText.getText().equals(""))) {
+                try {
+                    byte[] theKey = "hehehehe".getBytes();
+                    byte[] IV = "hohohoho".getBytes();
+
+                    String receiver = (String) room.getSelectedItem();
+                    receiver = "RCPT " + receiver;
+                    send(receiver);
+                    String message = (String) sendText.getText();
+                    byte[] plain = DES.DES.paddingMsg(message.getBytes());
+                    byte[][] subKeys = DES.DES.getSubkeys(theKey);
+                    byte[] chiper = DES.DES.encryptBlock(plain, IV, subKeys);
+                    
+                    message = new String(chiper);
+                    message = "MSG " + message;
+
+                    send(message);
+                    msgPool.append("To " + room.getSelectedItem().toString() + " : " + sendText.getText() + "\n");
+                    sendText.setText("");
+                }catch (Exception e) {
+                    e.printStackTrace();
+                    return;
+                }
             }
-        }
-        else 
+        } else {
             JOptionPane.showMessageDialog(null, "Tidak Ada Penerima Pesan");
+        }
         //System.out.println(receiver);
     }//GEN-LAST:event_sendBtnActionPerformed
 
@@ -326,23 +337,22 @@ public class ClientForm extends javax.swing.JFrame {
             }
         });
     }
-    
+
     public void connTo() {
         try {
-            if (uname.getText().equals("")){
+            if (uname.getText().equals("")) {
                 JOptionPane.showMessageDialog(null, "Username Kosong");
-            }
-            else{
-                if (isConnected == false){
-                    server = new Socket(servname.getText()==""?"localhost":servname.getText(), 6060);
+            } else {
+                if (isConnected == false) {
+                    server = new Socket(servname.getText() == "" ? "localhost" : servname.getText(), 6060);
                     bos = new BufferedOutputStream(server.getOutputStream());
                     dis = new DataInputStream(server.getInputStream());
-                    if (server!= null)
+                    if (server != null) {
                         isConnected = true;
+                    }
                     this.trdClient = new threadReadClient(this, server, dis, this.msgPool, this.listUser, this.room, this.uname);
                     this.trdClient.start();
                 }
-
 
                 String user = "NAME " + uname.getText();
                 send(user);
@@ -351,8 +361,8 @@ public class ClientForm extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, "Server Sedang Offline");
         }
     }
-    
-    public void disConForm(){
+
+    public void disConForm() {
         try {
             send("QUIT");
             isConnected = false;
@@ -366,36 +376,37 @@ public class ClientForm extends javax.swing.JFrame {
             Logger.getLogger(ClientForm.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
-    public void setConBtn(boolean value){
-        if (!value){
+
+    public void setConBtn(boolean value) {
+        if (!value) {
             connBtn.setText("CONNECT");
-        }
-        else
+        } else {
             connBtn.setText("DISCONNECT");
+        }
     }
-    
-    public void setEdit(boolean value){
+
+    public void setEdit(boolean value) {
         uname.setEditable(value);
         servname.setEditable(value);
     }
-    
-    public void clearAll(){
+
+    public void clearAll() {
         msgPool.setText("");
         listUser.setText("");
         room.removeAllItems();
         uname.setText("");
         servname.setText("");
     }
-    public void setEnObject(boolean parameter){
+
+    public void setEnObject(boolean parameter) {
         room.setEnabled(parameter);
         listUser.setEnabled(parameter);
         sendBtn.setEnabled(parameter);
         sendText.setEnabled(parameter);
         msgPool.setEnabled(parameter);
     }
-    
-    public void send(String request){
+
+    public void send(String request) {
         try {
             bos.write((request + '\r' + '\n').getBytes());
             bos.flush();
@@ -403,7 +414,7 @@ public class ClientForm extends javax.swing.JFrame {
             Logger.getLogger(ClientForm.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton connBtn;
     private javax.swing.JLabel jLabel1;
