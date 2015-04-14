@@ -1,10 +1,10 @@
+
+import Encrypt.DES;
+import Encrypt.RSA;
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -12,8 +12,7 @@ import java.io.OutputStream;
 import java.math.BigInteger;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -30,28 +29,35 @@ import javax.swing.JOptionPane;
 public class ClientForm extends javax.swing.JFrame {
 
     private Socket server = null;
-	private Socket server_key = null;
+    private Socket server_key = null;
     private BufferedOutputStream bos = null;
-	private BufferedOutputStream bos_key = null;
+    private BufferedOutputStream bos_key = null;
     private BufferedInputStream bis = null;
     private ObjectOutputStream oos = null;
     private ObjectInputStream ois = null;
     private OutputStream os = null;
     private DataInputStream dis = null;
-	private DataInputStream dis_key = null;
+    private DataInputStream dis_key = null;
     //private DataOutputStream os = null;
-	private BigInteger pubKey;
+    private BigInteger pubEKey;
+    private BigInteger pubNKey;
     private ArrayList<String> rcpt = new ArrayList<>();
     private threadReadClient trdClient;
-	private threadDistKeyClient trdClientKey;
+    private threadDistKeyClient trdClientKey;
     public boolean isConnected = false;
     private String pesan;
     public ArrayList<String> openedChat = new ArrayList();
+    RSA myKey = new RSA();
+    private byte[] DESKey = new byte[8];
+    private Random r = new Random();
+    private int bitLength = 64;
 
     /**
      * Creates new form ClientForm
      */
     public ClientForm() {
+        r.nextBytes(DESKey);
+        //System.out.println("DES KEY : " + bytesToHex(DESKey));
         initComponents();
         setEnObject(false);
         addWindowListener(new java.awt.event.WindowAdapter() {
@@ -272,36 +278,43 @@ public class ClientForm extends javax.swing.JFrame {
         if (room.getSelectedIndex() != -1) {
             if (!(sendText.getText().equals(""))) {
                 try {
-                    byte[] theKey = "hehehehe".getBytes();
-                    byte[] IV = "hohohoho".getBytes();
+                    byte[] theKey = DESKey;
+                    byte[] IV = "UDPEERNI".getBytes();
 
                     String receiver = (String) room.getSelectedItem();
                     receiver = "RCPT " + receiver;
                     send(receiver);
-					this.setPubKey("0");
-					receiver = (String) room.getSelectedItem();
-					receiver = "GET " + receiver;
-					send_to_key(receiver);
-					while(this.pubKey.equals(0)) {}
+                    this.setPubEKey("0");
+                    this.setPubNKey("0");
+                    receiver = (String) room.getSelectedItem();
+                    receiver = "GET " + receiver;
+                    send_to_key(receiver);
+                    while (this.pubEKey.equals(0)){
+                    }
+                    while(this.pubNKey.equals(0)){
+                    }
                     String message = (String) sendText.getText();
-                    byte[] plain = DES.DES.paddingMsg(message.getBytes());
-                    byte[][] subKeys = DES.DES.getSubkeys(theKey);
+                    byte[] plain = Encrypt.DES.paddingMsg(message.getBytes());
+                    byte[][] subKeys = Encrypt.DES.getSubkeys(theKey);
                     //System.out.println("----------------"+plain.length);
-                    byte[] chiper = DES.DES.encryptBlock(plain, IV, subKeys);
-                    
-                    System.out.println(DES.DES.bytesToHex(chiper));
+                    byte[] chiper = Encrypt.DES.encryptBlock(plain, IV, subKeys);
+
+                    //System.out.println(Encrypt.DES.bytesToHex(chiper));
                     //String baru = new String (chiper);
                     //System.out.println("---------"+baru);
                     //message = new String(chiper);
                     message = Base64.encode(chiper);
-                           
-                    message = "MSG " + message;
-
+                    byte[] EncryptedDESKey;
+                    EncryptedDESKey = myKey.encrypt(DESKey, this.pubEKey, this.pubNKey);
+                    System.out.println(DES.bytesToHex(DESKey));
+                    System.out.println(DES.bytesToHex(EncryptedDESKey));
+                    message = "MSG " + message + " " + Base64.encode(EncryptedDESKey);
                     send(message);
+                    r.nextBytes(DESKey);
                     //System.out.println(message);
                     msgPool.append("To " + room.getSelectedItem().toString() + " : " + sendText.getText() + "\n");
                     sendText.setText("");
-                }catch (Exception e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                     return;
                 }
@@ -366,14 +379,14 @@ public class ClientForm extends javax.swing.JFrame {
             } else {
                 if (isConnected == false) {
                     server = new Socket(servname.getText() == "" ? "localhost" : servname.getText(), 6060);
-					server_key = new Socket(servname.getText() == "" ? "localhost" : servname.getText(), 6161);
+                    server_key = new Socket(servname.getText() == "" ? "localhost" : servname.getText(), 6161);
                     bos = new BufferedOutputStream(server.getOutputStream());
-					bos_key = new BufferedOutputStream(server_key.getOutputStream());
+                    bos_key = new BufferedOutputStream(server_key.getOutputStream());
                     dis = new DataInputStream(server.getInputStream());
-					dis_key = new DataInputStream(server_key.getInputStream());
+                    dis_key = new DataInputStream(server_key.getInputStream());
                     if (server != null && server_key != null) {
                         isConnected = true;
-					} else if (server == null) {
+                    } else if (server == null) {
                         dis.close();
                         bos.close();
                         server.close();
@@ -384,13 +397,13 @@ public class ClientForm extends javax.swing.JFrame {
                     }
                     this.trdClient = new threadReadClient(this, server, dis, this.msgPool, this.listUser, this.room, this.uname);
                     this.trdClient.start();
-					this.trdClientKey = new threadDistKeyClient(this, server, dis_key);
+                    this.trdClientKey = new threadDistKeyClient(this, server, dis_key);
                     this.trdClientKey.start();
                 }
 
                 String user = "NAME " + uname.getText();
                 send(user);
-				send_to_key(user);
+                send_to_key(user);
             }
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(null, "Server Sedang Offline");
@@ -400,12 +413,12 @@ public class ClientForm extends javax.swing.JFrame {
     public void disConForm() {
         try {
             send("QUIT");
-			send_to_key("QUIT");
+            send_to_key("QUIT");
             isConnected = false;
             dis.close();
             bos.close();
             server.close();
-			dis_key.close();
+            dis_key.close();
             bos_key.close();
             server_key.close();
             setEnObject(false);
@@ -454,7 +467,7 @@ public class ClientForm extends javax.swing.JFrame {
         }
     }
 
-	public void send_to_key(String request) {
+    public void send_to_key(String request) {
         try {
             bos_key.write((request + '\r' + '\n').getBytes());
             bos_key.flush();
@@ -462,7 +475,7 @@ public class ClientForm extends javax.swing.JFrame {
             Logger.getLogger(ClientForm.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-	
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton connBtn;
     private javax.swing.JLabel jLabel1;
@@ -483,7 +496,11 @@ public class ClientForm extends javax.swing.JFrame {
     private javax.swing.JTextField servname;
     private javax.swing.JTextField uname;
     // End of variables declaration//GEN-END:variables
-	void setPubKey(String part) {
-        this.pubKey = new BigInteger(part);
+    void setPubEKey(String part) {
+        this.pubEKey = new BigInteger(part);
+    }
+    
+    void setPubNKey(String part) {
+        this.pubNKey = new BigInteger(part);
     }
 }

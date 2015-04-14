@@ -48,17 +48,21 @@ public class RSA {
         this.N = N;
     }
 
-    public String getPublicKey() {
+    public String getPublicEKey() {
         return this.e.toString();
+    }
+    
+    public String getPublicNKey() {
+        return this.N.toString();
     }
 
     //Encrypt message
-    public byte[] encrypt(byte[] message) {
-        return (new BigInteger(message)).modPow(e, N).toByteArray();
+    public byte[] encrypt(byte[] message, BigInteger eK, BigInteger nK) {
+        return (new BigInteger(message)).modPow(eK, nK).toByteArray();
     }
 
     // Decrypt message
     public byte[] decrypt(byte[] message) {
-        return (new BigInteger(message)).modPow(d, N).toByteArray();
+        return (new BigInteger(message)).modPow(this.d, this.N).toByteArray();
     }
 }
