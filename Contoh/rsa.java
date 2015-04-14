@@ -2,7 +2,7 @@ import java.math.BigInteger;
 import java.util.Random;
 import java.io.*;
   
-public class RSA { 
+public class rsa { 
 
     private BigInteger p; 
     private BigInteger q; 
@@ -14,7 +14,7 @@ public class RSA {
     private int blocksize = 256; //blocksize in byte 
      
     private Random r; 
-     public RSA() { 
+     public rsa() { 
         r = new Random(); 
         p = BigInteger.probablePrime(bitlength, r); 
         q = BigInteger.probablePrime(bitlength, r); 
@@ -26,10 +26,10 @@ public class RSA {
         while (phi.gcd(e).compareTo(BigInteger.ONE) > 0 && e.compareTo(phi) < 0 ) { 
             e.add(BigInteger.ONE); 
         } 
- d = e.modInverse(phi);  
+        d = e.modInverse(phi);  
     } 
      
-    public RSA(BigInteger e, BigInteger d, BigInteger N) { 
+    public rsa(BigInteger e, BigInteger d, BigInteger N) { 
         this.e = e; 
         this.d = d; 
         this.N = N; 
@@ -37,7 +37,7 @@ public class RSA {
      
     public static void main (String[] args) throws IOException
 { 
-        RSA rsa = new RSA(); 
+        rsa var_rsa = new rsa(); 
         DataInputStream in=new DataInputStream(System.in);  
         String teststring ;
         System.out.println("Enter the plain text:");
@@ -46,11 +46,11 @@ public class RSA {
         System.out.println("String in Bytes: " + bytesToString(teststring.getBytes())); 
 
         // encrypt 
-        byte[] encrypted = rsa.encrypt(teststring.getBytes());                   
+        byte[] encrypted = var_rsa.encrypt(teststring.getBytes());                   
         System.out.println("Encrypted String in Bytes: " + bytesToString(encrypted)); 
          
         // decrypt 
-        byte[] decrypted = rsa.decrypt(encrypted);       
+        byte[] decrypted = var_rsa.decrypt(encrypted);       
         System.out.println("Decrypted String in Bytes: " +  bytesToString(decrypted)); 
          
         System.out.println("Decrypted String: " + new String(decrypted)); 
