@@ -9,8 +9,11 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.math.BigInteger;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -27,15 +30,20 @@ import javax.swing.JOptionPane;
 public class ClientForm extends javax.swing.JFrame {
 
     private Socket server = null;
+	private Socket server_key = null;
     private BufferedOutputStream bos = null;
+	private BufferedOutputStream bos_key = null;
     private BufferedInputStream bis = null;
     private ObjectOutputStream oos = null;
     private ObjectInputStream ois = null;
     private OutputStream os = null;
     private DataInputStream dis = null;
+	private DataInputStream dis_key = null;
     //private DataOutputStream os = null;
+	private BigInteger pubKey;
     private ArrayList<String> rcpt = new ArrayList<>();
     private threadReadClient trdClient;
+	private threadDistKeyClient trdClientKey;
     public boolean isConnected = false;
     private String pesan;
     public ArrayList<String> openedChat = new ArrayList();
@@ -270,6 +278,11 @@ public class ClientForm extends javax.swing.JFrame {
                     String receiver = (String) room.getSelectedItem();
                     receiver = "RCPT " + receiver;
                     send(receiver);
+					this.setPubKey("0");
+					receiver = (String) room.getSelectedItem();
+					receiver = "GET " + receiver;
+					send_to_key(receiver);
+					while(this.pubKey.equals(0)) {}
                     String message = (String) sendText.getText();
                     byte[] plain = DES.DES.paddingMsg(message.getBytes());
                     byte[][] subKeys = DES.DES.getSubkeys(theKey);
@@ -353,17 +366,31 @@ public class ClientForm extends javax.swing.JFrame {
             } else {
                 if (isConnected == false) {
                     server = new Socket(servname.getText() == "" ? "localhost" : servname.getText(), 6060);
+					server_key = new Socket(servname.getText() == "" ? "localhost" : servname.getText(), 6161);
                     bos = new BufferedOutputStream(server.getOutputStream());
+					bos_key = new BufferedOutputStream(server_key.getOutputStream());
                     dis = new DataInputStream(server.getInputStream());
-                    if (server != null) {
+					dis_key = new DataInputStream(server_key.getInputStream());
+                    if (server != null && server_key != null) {
                         isConnected = true;
+					} else if (server == null) {
+                        dis.close();
+                        bos.close();
+                        server.close();
+                    } else if (server_key == null) {
+                        dis_key.close();
+                        bos_key.close();
+                        server_key.close();
                     }
                     this.trdClient = new threadReadClient(this, server, dis, this.msgPool, this.listUser, this.room, this.uname);
                     this.trdClient.start();
+					this.trdClientKey = new threadDistKeyClient(this, server, dis_key);
+                    this.trdClientKey.start();
                 }
 
                 String user = "NAME " + uname.getText();
                 send(user);
+				send_to_key(user);
             }
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(null, "Server Sedang Offline");
@@ -373,10 +400,14 @@ public class ClientForm extends javax.swing.JFrame {
     public void disConForm() {
         try {
             send("QUIT");
+			send_to_key("QUIT");
             isConnected = false;
             dis.close();
             bos.close();
             server.close();
+			dis_key.close();
+            bos_key.close();
+            server_key.close();
             setEnObject(false);
             setEdit(true);
             setConBtn(true);
@@ -423,6 +454,15 @@ public class ClientForm extends javax.swing.JFrame {
         }
     }
 
+	public void send_to_key(String request) {
+        try {
+            bos_key.write((request + '\r' + '\n').getBytes());
+            bos_key.flush();
+        } catch (IOException ex) {
+            Logger.getLogger(ClientForm.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+	
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton connBtn;
     private javax.swing.JLabel jLabel1;
@@ -443,4 +483,7 @@ public class ClientForm extends javax.swing.JFrame {
     private javax.swing.JTextField servname;
     private javax.swing.JTextField uname;
     // End of variables declaration//GEN-END:variables
+	void setPubKey(String part) {
+        this.pubKey = new BigInteger(part);
+    }
 }

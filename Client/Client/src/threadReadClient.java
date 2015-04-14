@@ -30,6 +30,10 @@ class threadReadClient extends Thread{
     private JComboBox room;
     private JTextField uname;
     private DefaultListModel listModel;
+	private byte[] DESKey = new byte[8];
+    private Random r = new Random();
+    private int bitLength = 64;
+    private RSA myKey = new RSA();
     
     public threadReadClient(ClientForm parent, Socket sock, DataInputStream is, JTextArea txtReceived, JTextArea list, JComboBox room, JTextField uname){
         this.sock = sock;
@@ -39,6 +43,8 @@ class threadReadClient extends Thread{
         this.room = room;
         this.client = parent;
         this.uname = uname;
+		r.nextBytes(DESKey);
+        System.out.println("DES KEY : " + bytesToHex(DESKey));
     }
     
     @Override
@@ -49,6 +55,7 @@ class threadReadClient extends Thread{
                 respon = is.readLine();
                 String[] parts = respon.split("#");
                 
+				// server 400 LIST Response
                 if(parts[0].equals("400")){
                     this.room.removeAllItems();
                     this.list.setText("");
@@ -60,6 +67,7 @@ class threadReadClient extends Thread{
                         }
                     }
                 }
+				// server 401 MSG Response
                 else if(parts[0].equals("401")){
                     try {
                         byte[] theKey = "hehehehe".getBytes();
@@ -78,9 +86,11 @@ class threadReadClient extends Thread{
                         return;
                     }
                 }
+				// server 102 Username Already Taken
                 else if(parts[0].equals("102")){
                     JOptionPane.showMessageDialog(null, "Username Sudah Terpakai");
                 }
+				// server 100 Username Set
                 else if(parts[0].equals("100")){
                     this.client.send("LIST");
                     this.client.setConBtn(true);
