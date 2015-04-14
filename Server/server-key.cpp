@@ -18,17 +18,18 @@ using namespace std;
 #define BACKLOG 10
 #define PRINT(msg) printf ("%s\n", msg)
 
-
-
 /*
-	1xx Authentification
-	100 Username Set
-	2xx Connection
-	200 Connection Success
-	201 Logging Out
-	4xx Response Message
-	400 public key of client
-	401 client not found
+	11x Authentification
+	110 Username Set
+	21x Connection
+	210 Connection Success
+	211 Logging Out
+	41x Response Message
+	410 public key of client set
+	411 public key of target get
+	414 client not found
+	51x Command
+	510 Unknown Command
 */
 
 // Node for each client
@@ -39,6 +40,7 @@ typedef struct user
 	struct user *prev, *next, **first;
 } user;
 
+// client and public key dictionary
 map<string, string> dict;
 
 // Pointer to head and temporary var
@@ -59,7 +61,7 @@ void* threadClient(void *arg)
 	user *client = (user *) arg;
 	PRINT("Accept !");
 	// After each successful connection
-	sprintf(respbuf, "200#Connect Success\r\n");
+	sprintf(respbuf, "210#Connect Success\r\n");
 	retval = send(client->sockcli, respbuf, strlen(respbuf), 0);
 	while (retval != -1)
 	{
@@ -68,10 +70,10 @@ void* threadClient(void *arg)
 		if (retval == -1)
 			break;
 		// Client QUIT from the chat
-		else if (strcasecmp(buf, "QUIT") == 0)
+		else if (strncasecmp(buf, "QUIT", 4) == 0)
 		{
-			sprintf(respbuf, "201#Logging Out\r\n");
-			retval = send(client->sockcli, respbuf, strlen(respbuf), 0);
+			//sprintf(respbuf, "211#Logging Out\r\n");
+			//retval = send(client->sockcli, respbuf, strlen(respbuf), 0);
 			retval = -1;
 			
 			if (*(client->first) == client)
@@ -91,7 +93,7 @@ void* threadClient(void *arg)
 			sscanf(buf, "%*s %s", name);
 			//PRINT(name);
 			strcpy(client->name, name);
-			sprintf(respbuf, "100#Username Set\r\n");
+			sprintf(respbuf, "110#Username Set\r\n");
 			retval = send(client->sockcli, respbuf, strlen(respbuf), 0);
 		}
 		// Set public key of client's
@@ -101,6 +103,8 @@ void* threadClient(void *arg)
 			memset(key, 0, sizeof(key));
 			sscanf(buf, "%*s %s", key);
 			dict[client->name] = key;
+			sprintf(respbuf, "410#Public Key Set\r\n");
+			retval = send(client->sockcli, respbuf, strlen(respbuf), 0);
 		}
 		// Send public key of recipient
 		else if (strncasecmp(buf, "GET", 3) == 0)
@@ -110,17 +114,25 @@ void* threadClient(void *arg)
 			sscanf(buf, "%*s %s", target);
 			if(dict[target].length() == 0)
 			{
-				sprintf(respbuf, "400#Client Not Found\r\n");
+				sprintf(respbuf, "414#Client Not Found\r\n");
 				retval = send(client->sockcli, respbuf, strlen(respbuf), 0);
 			}
 			else
 			{
 				char text[2048];
-				strcat(text, "401#");
-				strcat(text, dict[target].c_str());
+				strcat(text, "411#");
+				strcat(text, target);
 				strcat(text, "#");
+				strcat(text, dict[target].c_str());
+				strcat(text, "\r\n");
 				retval = send(client->sockcli, text, strlen(text), 0);
 			}
+		}
+		// 510 Unknown Command sent by user
+		else
+		{
+			sprintf(respbuf, "510#Unknown Command\r\n");
+			retval = send(client->sockcli, respbuf, strlen(respbuf), 0);
 		}
 	}
 	close(client->sockcli);
@@ -146,28 +158,19 @@ int main ()
 	PRINT("Port Binding berhasil !");
 
 	retval = listen(sockfd, BACKLOG);
-	PRINT("1");
+	
 	while (1)
 	{
-		PRINT("a");
 		tmp = (user *)malloc(sizeof(user));
 		// Set new user data, set at head (first) node
 		tmp->sockcli = accept(sockfd, (struct sockaddr *)&cliaddr, &clisize);
-		PRINT("b");
-		strcpy(tmp->name, "");
-		PRINT("c");
+		strcpy(tmp->name, "Unknown");
 		tmp->first = &first;
-		PRINT("d");
 		tmp->prev = NULL;
-		PRINT("e");
 		tmp->next = first;
-		PRINT("f");
 		if (first != NULL)
 			first->prev = tmp;
 		first = tmp;
-		PRINT("g");
-		PRINT(tmp->name);
-		PRINT("h");
 		pthread_create(&pt[currentUser], NULL, threadClient, tmp);
 		currentUser++;
 	}

@@ -12,17 +12,17 @@
 #define PRINT(msg) printf ("%s\n", msg)
 
 /*
-	1xx Authentification
+	10x Authentification
 	100 Username Set
 	101 Username Not Set
 	102 Username Already Taken
-	2xx Connection
+	20x Connection
 	200 Connection Success
 	201 Logging Out
-	4xx Response Message
+	40x Response Message
 	400 LIST Response
 	401 MSG Response
-	5xx Command
+	50x Command
 	500 Unknown Command
 */
 
@@ -226,7 +226,6 @@ int main ()
 
 	retval = listen(sockfd, BACKLOG);
 
-
 	while (1)
 	{
 		tmp = (user *)malloc(sizeof(user));
@@ -243,7 +242,6 @@ int main ()
 		pthread_create(&pt[currentUser], NULL, threadClient, tmp);
 		currentUser++;
 	}
-
 }
 
 int readresponse(int sockfd, char *buf)
