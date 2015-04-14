@@ -133,6 +133,7 @@ void* threadClient(void *arg)
 				strcat(text, "#");
 				strcat(text, dictN[target].c_str());
 				strcat(text, "\r\n");
+				PRINT(text);
 				retval = send(client->sockcli, text, strlen(text), 0);
 			}
 		}
