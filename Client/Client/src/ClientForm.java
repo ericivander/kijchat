@@ -57,6 +57,8 @@ public class ClientForm extends javax.swing.JFrame {
      */
     public ClientForm() {
         r.nextBytes(DESKey);
+        DESKey[0] = 1;
+        //DESKey = "UDPEERNI".getBytes();
         //System.out.println("DES KEY : " + bytesToHex(DESKey));
         initComponents();
         setEnObject(false);
@@ -315,6 +317,7 @@ public class ClientForm extends javax.swing.JFrame {
                     message = "MSG " + message + " " + Base64.encode(EncryptedDESKey);
                     send(message);
                     r.nextBytes(DESKey);
+                    DESKey[0] = 1;
                     //System.out.println(message);
                     msgPool.append("To " + room.getSelectedItem().toString() + " : " + sendText.getText() + "\n");
                     sendText.setText("");
