@@ -19,7 +19,7 @@ using namespace std;
 #define PRINT(msg) printf ("%s\n", msg)
 
 /*
-	11x Authentification
+	11x Authentication
 	110 Username Set
 	21x Connection
 	210 Connection Success
