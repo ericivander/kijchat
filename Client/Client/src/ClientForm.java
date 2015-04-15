@@ -129,6 +129,7 @@ public class ClientForm extends javax.swing.JFrame {
 
         msgPool.setEditable(false);
         msgPool.setColumns(20);
+        msgPool.setLineWrap(true);
         msgPool.setRows(5);
         jScrollPane2.setViewportView(msgPool);
 

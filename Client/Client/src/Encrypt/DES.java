@@ -54,7 +54,7 @@ public class DES {
         33, 1, 41, 9, 49, 17, 57, 25
     };
 
-    public static byte[] cipher(byte[] theMsg, byte[][] subKeys,
+    public static byte[] cipher( byte[] theMsg, byte[][] subKeys,
             String mode) throws Exception {
         if (theMsg.length < 8) {
             throw new Exception("Message is less than 64 bits.");

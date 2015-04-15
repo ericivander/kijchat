@@ -78,6 +78,7 @@ class threadReadClient extends Thread {
                         //System.out.println("lalala");
                         String text = parts[1] + " : " + new String(plain);
                         this.txtReceived.append(text + "\n");
+                        this.txtReceived.setCaretPosition(this.txtReceived.getDocument().getLength());
                         //System.out.println(new String(plain));
                     } catch (Exception e) {
                         e.printStackTrace();
