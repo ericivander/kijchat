@@ -12,7 +12,7 @@
 #define PRINT(msg) printf ("%s\n", msg)
 
 /*
-	10x Authentification
+	10x Authentication
 	100 Username Set
 	101 Username Not Set
 	102 Username Already Taken
