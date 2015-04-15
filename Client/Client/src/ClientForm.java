@@ -301,6 +301,7 @@ public class ClientForm extends javax.swing.JFrame {
                     while(this.pubNKey.equals(comp)){
                     }
                     String message = (String) sendText.getText();
+                    System.out.println("Before encryption : " + message);
                     byte[] plain = Encrypt.DES.paddingMsg(message.getBytes());
                     byte[][] subKeys = Encrypt.DES.getSubkeys(theKey);
                     //System.out.println("----------------"+plain.length);
@@ -313,8 +314,9 @@ public class ClientForm extends javax.swing.JFrame {
                     message = Base64.encode(chiper);
                     byte[] EncryptedDESKey;
                     EncryptedDESKey = myKey.encrypt(DESKey, this.pubEKey, this.pubNKey);
-                    System.out.println("DES Key : " + DES.bytesToHex(DESKey));
-                    System.out.println("Encrypted DES Key : " + DES.bytesToHex(EncryptedDESKey));
+                    //System.out.println("DES Key : " + DES.bytesToHex(DESKey));
+                    //System.out.println("Encrypted DES Key : " + DES.bytesToHex(EncryptedDESKey));
+                    System.out.println("After encryption : " + message);
                     message = "MSG " + message + " " + Base64.encode(EncryptedDESKey);
                     send(message);
                     r.nextBytes(DESKey);
